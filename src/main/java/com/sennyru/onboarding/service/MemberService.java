@@ -18,6 +18,10 @@ public class MemberService {
 
     @Transactional
     public Member signup(SignupRequestDto requestDto) {
+        if (memberRepository.existsByEmail(requestDto.getEmail())) {
+            throw new IllegalStateException("이미 가입된 이메일입니다.");
+        }
+
         String encryptedPassword = passwordEncoder.encode(requestDto.getPassword());
 
         Member member = Member.builder()
