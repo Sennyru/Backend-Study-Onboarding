@@ -24,11 +24,7 @@ public class MemberService {
 
         String encryptedPassword = passwordEncoder.encode(requestDto.getPassword());
 
-        Member member = Member.builder()
-                .email(requestDto.getEmail())
-                .password(encryptedPassword)
-                .username(requestDto.getUsername())
-                .build();
+        Member member = Member.create(requestDto.getEmail(), encryptedPassword, requestDto.getUsername());
 
         return memberRepository.save(member);
     }

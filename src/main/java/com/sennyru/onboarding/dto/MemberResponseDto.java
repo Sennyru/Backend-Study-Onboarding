@@ -5,11 +5,15 @@ import lombok.Getter;
 
 @Getter
 public class MemberResponseDto {
-    private String email;
-    private String username;
+    private final String email;
+    private final String username;
 
-    public MemberResponseDto(Member member) {
+    private MemberResponseDto(Member member) {
         this.email = member.getEmail();
         this.username = member.getUsername();
+    }
+
+    public static MemberResponseDto from(Member member) {
+        return new MemberResponseDto(member);
     }
 }
