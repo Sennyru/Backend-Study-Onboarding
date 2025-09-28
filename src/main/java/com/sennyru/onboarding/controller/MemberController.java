@@ -22,7 +22,7 @@ public class MemberController {
     @PostMapping("/signup")
     public ResponseEntity<MemberResponseDto> signup(@RequestBody SignupRequestDto requestDto) {
         Member savedMember = memberService.signup(requestDto);
-        MemberResponseDto responseDto = new MemberResponseDto(savedMember);
+        MemberResponseDto responseDto = MemberResponseDto.from(savedMember);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 }
