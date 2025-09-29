@@ -1,12 +1,20 @@
 package com.sennyru.onboarding.dto;
 
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
 public class SignupRequestDto {
-    private String email;
-    private String password;
-    private String username;
+    private final String email;
+    private final String password;
+    private final String username;
+
+    private SignupRequestDto(String email, String password, String username) {
+        this.email = email;
+        this.password = password;
+        this.username = username;
+    }
+
+    public static SignupRequestDto of(String email, String password, String username) {
+        return new SignupRequestDto(email, password, username);
+    }
 }
