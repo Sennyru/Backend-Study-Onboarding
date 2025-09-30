@@ -1,6 +1,5 @@
 package com.sennyru.onboarding.controller;
 
-import com.sennyru.onboarding.domain.Member;
 import com.sennyru.onboarding.dto.MemberResponseDto;
 import com.sennyru.onboarding.dto.SignupRequestDto;
 import com.sennyru.onboarding.service.MemberService;
@@ -22,8 +21,7 @@ public class MemberController {
 
     @PostMapping("/signup")
     public ResponseEntity<MemberResponseDto> signup(@Valid @RequestBody SignupRequestDto requestDto) {
-        Member savedMember = memberService.signup(requestDto);
-        MemberResponseDto responseDto = MemberResponseDto.from(savedMember);
+        MemberResponseDto responseDto = memberService.signup(requestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 }
