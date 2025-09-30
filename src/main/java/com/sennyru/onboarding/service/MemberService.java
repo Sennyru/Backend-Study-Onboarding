@@ -1,5 +1,6 @@
 package com.sennyru.onboarding.service;
 
+import com.sennyru.onboarding.dto.MemberResponseDto;
 import com.sennyru.onboarding.domain.Member;
 import com.sennyru.onboarding.dto.SignupRequestDto;
 import com.sennyru.onboarding.repository.MemberRepository;
@@ -17,15 +18,15 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public Member signup(SignupRequestDto requestDto) {
+    public MemberResponseDto signup(SignupRequestDto requestDto) {
         if (memberRepository.existsByEmail(requestDto.email())) {
             throw new IllegalStateException("이미 가입된 이메일입니다.");
         }
 
         String encryptedPassword = passwordEncoder.encode(requestDto.password());
-
         Member member = Member.create(requestDto.email(), encryptedPassword, requestDto.username());
+        Member savedMember = memberRepository.save(member);
 
-        return memberRepository.save(member);
+        return MemberResponseDto.of(savedMember.getEmail(), savedMember.getUsername());
     }
 }
