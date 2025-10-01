@@ -1,5 +1,6 @@
 package com.sennyru.onboarding.controller;
 
+import com.sennyru.onboarding.dto.PostDeleteRequestDto;
 import com.sennyru.onboarding.dto.PostUpdateRequestDto;
 import com.sennyru.onboarding.dto.PostCreateRequestDto;
 import com.sennyru.onboarding.dto.PostResponseDto;
@@ -8,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -32,5 +34,11 @@ public class PostController {
     public ResponseEntity<PostResponseDto> updatePost(@PathVariable Long postId, @Valid @RequestBody PostUpdateRequestDto requestDto) {
         PostResponseDto responseDto = postService.updatePost(postId, requestDto);
         return ResponseEntity.ok(responseDto);
+    }
+
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<Void> deletePost(@PathVariable Long postId, @Valid @RequestBody PostDeleteRequestDto requestDto) {
+        postService.deletePost(postId, requestDto);
+        return ResponseEntity.noContent().build();
     }
 }
