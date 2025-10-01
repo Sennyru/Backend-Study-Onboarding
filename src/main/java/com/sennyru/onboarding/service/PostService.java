@@ -1,5 +1,6 @@
 package com.sennyru.onboarding.service;
 
+import com.sennyru.onboarding.dto.PostDeleteRequestDto;
 import com.sennyru.onboarding.dto.PostUpdateRequestDto;
 import com.sennyru.onboarding.domain.Member;
 import com.sennyru.onboarding.domain.Post;
@@ -67,5 +68,24 @@ public class PostService {
             post.getTitle(),
             post.getContent()
         );
+    }
+
+    @Transactional
+    public void deletePost(Long postId, PostDeleteRequestDto requestDto) {
+        Post post = postRepository.findById(postId)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시물입니다."));
+
+        Member member = memberRepository.findByEmail(requestDto.email())
+            .orElseThrow(() -> new IllegalArgumentException("가입되지 않은 이메일입니다."));
+
+        if (!passwordEncoder.matches(requestDto.password(), member.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        }
+
+        if (!Objects.equals(post.getMember().getId(), member.getId())) {
+            throw new IllegalStateException("게시물 삭제 권한이 없습니다.");
+        }
+
+        postRepository.delete(post);
     }
 }
