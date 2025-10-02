@@ -6,6 +6,10 @@ import com.sennyru.onboarding.dto.PostCreateRequestDto;
 import com.sennyru.onboarding.dto.PostDeleteRequestDto;
 import com.sennyru.onboarding.dto.PostResponseDto;
 import com.sennyru.onboarding.dto.PostUpdateRequestDto;
+import com.sennyru.onboarding.exception.InvalidPasswordException;
+import com.sennyru.onboarding.exception.MemberNotFoundException;
+import com.sennyru.onboarding.exception.PostAccessDeniedException;
+import com.sennyru.onboarding.exception.PostNotFoundException;
 import com.sennyru.onboarding.repository.MemberRepository;
 import com.sennyru.onboarding.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
@@ -68,32 +72,33 @@ public class PostService {
      * @param email 사용자 이메일
      * @param password 평문 비밀번호
      * @return 검증된 Member 엔티티
-     * @throws IllegalArgumentException 가입되지 않은 이메일이거나 비밀번호가 일치하지 않을 경우
+     * @throws MemberNotFoundException 가입되지 않은 이메일일 경우
+     * @throws InvalidPasswordException 비밀번호가 일치하지 않을 경우
      */
     private Member authenticateMember(String email, String password) {
         Member member = memberRepository.findByEmail(email)
-            .orElseThrow(() -> new IllegalArgumentException("가입되지 않은 이메일입니다."));
+            .orElseThrow(() -> new MemberNotFoundException("가입되지 않은 이메일입니다."));
 
         if (!passwordEncoder.matches(password, member.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+            throw new InvalidPasswordException("비밀번호가 일치하지 않습니다.");
         }
         return member;
     }
 
     /**
-     * 게시물이 존재하는지 확인하고, 사용자가 게시물의 작성자인지 검증합니다.
-     * @param postId 확인할 게시물의 ID
-     * @param member (인증된) 사용자 Member 엔티티
+     * 게시물이 존재하는지 확인하고, 사용자가 해당 게시물의 작성자인지 검증합니다.
+     * @param postId 검증할 게시물의 ID
+     * @param member 인증된 사용자 Member 엔티티
      * @return 검증된 Post 엔티티
-     * @throws IllegalArgumentException 게시물이 존재하지 않을 경우
-     * @throws IllegalStateException 게시물에 대한 권한이 없을 경우
+     * @throws PostNotFoundException 게시물이 존재하지 않을 경우
+     * @throws PostAccessDeniedException 게시물에 대한 권한이 없을 경우
      */
     private Post findPostAndValidateOwnership(Long postId, Member member) {
         Post post = postRepository.findById(postId)
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시물입니다."));
+            .orElseThrow(() -> new PostNotFoundException("존재하지 않는 게시물입니다."));
 
         if (!Objects.equals(post.getMember().getId(), member.getId())) {
-            throw new IllegalStateException("게시물에 대한 권한이 없습니다.");
+            throw new PostAccessDeniedException("게시물에 대한 권한이 없습니다.");
         }
         return post;
     }
