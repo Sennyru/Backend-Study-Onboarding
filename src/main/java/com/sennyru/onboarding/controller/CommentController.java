@@ -10,18 +10,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/posts/{postId}/comments")
+@RequestMapping("/api/comments")
 @RequiredArgsConstructor
 public class CommentController {
 
     private final CommentService commentService;
 
-    @PostMapping
-    public ResponseEntity<CommentResponseDto> createComment(
-        @PathVariable Long postId,
-        @Valid @RequestBody CommentCreateRequestDto requestDto) {
-        
-        CommentResponseDto responseDto = commentService.createComment(postId, requestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
-    }
 }

@@ -1,5 +1,8 @@
 package com.sennyru.onboarding.controller;
 
+import com.sennyru.onboarding.dto.CommentCreateRequestDto;
+import com.sennyru.onboarding.dto.CommentResponseDto;
+import com.sennyru.onboarding.service.CommentService;
 import com.sennyru.onboarding.dto.PostDeleteRequestDto;
 import com.sennyru.onboarding.dto.PostUpdateRequestDto;
 import com.sennyru.onboarding.dto.PostCreateRequestDto;
@@ -23,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class PostController {
 
     private final PostService postService;
+    private final CommentService commentService;
 
     @PostMapping
     public ResponseEntity<PostResponseDto> createPost(@Valid @RequestBody PostCreateRequestDto requestDto) {
@@ -40,5 +44,14 @@ public class PostController {
     public ResponseEntity<Void> deletePost(@PathVariable Long postId, @Valid @RequestBody PostDeleteRequestDto requestDto) {
         postService.deletePost(postId, requestDto);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{postId}/comments")
+    public ResponseEntity<CommentResponseDto> createCommentForPost(
+        @PathVariable Long postId,
+        @Valid @RequestBody CommentCreateRequestDto requestDto) {
+        
+        CommentResponseDto responseDto = commentService.createComment(postId, requestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 }
