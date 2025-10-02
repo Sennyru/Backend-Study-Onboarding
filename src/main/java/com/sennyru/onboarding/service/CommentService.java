@@ -1,5 +1,8 @@
 package com.sennyru.onboarding.service;
 
+import com.sennyru.onboarding.dto.CommentUpdateRequestDto;
+import com.sennyru.onboarding.exception.CommentAccessDeniedException;
+import com.sennyru.onboarding.exception.CommentNotFoundException;
 import com.sennyru.onboarding.domain.Comment;
 import com.sennyru.onboarding.domain.Member;
 import com.sennyru.onboarding.domain.Post;
@@ -11,6 +14,8 @@ import com.sennyru.onboarding.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Objects;
 
 @Service
 @Transactional(readOnly = true)
@@ -34,6 +39,25 @@ public class CommentService {
             savedComment.getId(),
             savedComment.getMember().getEmail(),
             savedComment.getContent()
+        );
+    }
+
+    @Transactional
+    public CommentResponseDto updateComment(Long commentId, CommentUpdateRequestDto requestDto) {
+        Member member = memberService.authenticateAndFindMember(requestDto.email(), requestDto.password());
+        Comment comment = commentRepository.findById(commentId)
+            .orElseThrow(() -> new CommentNotFoundException("존재하지 않는 댓글입니다."));
+
+        if (!Objects.equals(comment.getMember().getId(), member.getId())) {
+            throw new CommentAccessDeniedException("댓글 수정 권한이 없습니다.");
+        }
+
+        comment.update(requestDto.content());
+
+        return CommentResponseDto.of(
+            comment.getId(),
+            comment.getMember().getEmail(),
+            comment.getContent()
         );
     }
 }
