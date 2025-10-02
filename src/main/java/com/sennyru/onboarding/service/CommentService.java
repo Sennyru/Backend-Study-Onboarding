@@ -1,5 +1,6 @@
 package com.sennyru.onboarding.service;
 
+import com.sennyru.onboarding.dto.CommentDeleteRequestDto;
 import com.sennyru.onboarding.dto.CommentUpdateRequestDto;
 import com.sennyru.onboarding.exception.CommentAccessDeniedException;
 import com.sennyru.onboarding.exception.CommentNotFoundException;
@@ -59,5 +60,18 @@ public class CommentService {
             comment.getMember().getEmail(),
             comment.getContent()
         );
+    }
+
+    @Transactional
+    public void deleteComment(Long commentId, CommentDeleteRequestDto requestDto) {
+        Member member = memberService.authenticateAndFindMember(requestDto.email(), requestDto.password());
+        Comment comment = commentRepository.findById(commentId)
+            .orElseThrow(() -> new CommentNotFoundException("존재하지 않는 댓글입니다."));
+
+        if (!Objects.equals(comment.getMember().getId(), member.getId())) {
+            throw new CommentAccessDeniedException("댓글 삭제 권한이 없습니다.");
+        }
+
+        commentRepository.delete(comment);
     }
 }
