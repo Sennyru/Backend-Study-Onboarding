@@ -6,14 +6,10 @@ import com.sennyru.onboarding.dto.PostCreateRequestDto;
 import com.sennyru.onboarding.dto.PostDeleteRequestDto;
 import com.sennyru.onboarding.dto.PostResponseDto;
 import com.sennyru.onboarding.dto.PostUpdateRequestDto;
-import com.sennyru.onboarding.exception.InvalidPasswordException;
-import com.sennyru.onboarding.exception.MemberNotFoundException;
 import com.sennyru.onboarding.exception.PostAccessDeniedException;
 import com.sennyru.onboarding.exception.PostNotFoundException;
-import com.sennyru.onboarding.repository.MemberRepository;
 import com.sennyru.onboarding.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,12 +21,11 @@ import java.util.Objects;
 public class PostService {
 
     private final PostRepository postRepository;
-    private final MemberRepository memberRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final MemberService memberService;
 
     @Transactional
     public PostResponseDto createPost(PostCreateRequestDto requestDto) {
-        Member member = authenticateMember(requestDto.email(), requestDto.password());
+        Member member = memberService.authenticateAndFindMember(requestDto.email(), requestDto.password());
 
         Post post = Post.create(requestDto.title(), requestDto.content(), member);
         Post savedPost = postRepository.save(post);
@@ -45,7 +40,7 @@ public class PostService {
 
     @Transactional
     public PostResponseDto updatePost(Long postId, PostUpdateRequestDto requestDto) {
-        Member member = authenticateMember(requestDto.email(), requestDto.password());
+        Member member = memberService.authenticateAndFindMember(requestDto.email(), requestDto.password());
         Post post = findPostAndValidateOwnership(postId, member);
 
         post.update(requestDto.title(), requestDto.content());
@@ -60,7 +55,7 @@ public class PostService {
 
     @Transactional
     public void deletePost(Long postId, PostDeleteRequestDto requestDto) {
-        Member member = authenticateMember(requestDto.email(), requestDto.password());
+        Member member = memberService.authenticateAndFindMember(requestDto.email(), requestDto.password());
         Post post = findPostAndValidateOwnership(postId, member);
 
         postRepository.delete(post);
@@ -68,25 +63,7 @@ public class PostService {
     
     
     /**
-     * 이메일이 가입되어 있고 비밀번호가 일치한지 검증합니다.
-     * @param email 사용자 이메일
-     * @param password 평문 비밀번호
-     * @return 검증된 Member 엔티티
-     * @throws MemberNotFoundException 가입되지 않은 이메일일 경우
-     * @throws InvalidPasswordException 비밀번호가 일치하지 않을 경우
-     */
-    private Member authenticateMember(String email, String password) {
-        Member member = memberRepository.findByEmail(email)
-            .orElseThrow(() -> new MemberNotFoundException("가입되지 않은 이메일입니다."));
-
-        if (!passwordEncoder.matches(password, member.getPassword())) {
-            throw new InvalidPasswordException("비밀번호가 일치하지 않습니다.");
-        }
-        return member;
-    }
-
-    /**
-     * 게시물이 존재하는지 확인하고, 사용자가 해당 게시물의 작성자인지 검증합니다.
+     * 게시물이 존재하는지 확인하고, 사용자가 게시물의 작성자인지 검증합니다.
      * @param postId 검증할 게시물의 ID
      * @param member 인증된 사용자 Member 엔티티
      * @return 검증된 Post 엔티티
