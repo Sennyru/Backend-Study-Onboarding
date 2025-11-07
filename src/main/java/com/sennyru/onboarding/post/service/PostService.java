@@ -1,36 +1,33 @@
 package com.sennyru.onboarding.post.service;
 
 import com.sennyru.onboarding.member.domain.Member;
-import com.sennyru.onboarding.post.domain.Post;
+import com.sennyru.onboarding.member.implement.MemberReader;
 import com.sennyru.onboarding.post.controller.dto.PostCreateRequestDto;
 import com.sennyru.onboarding.post.controller.dto.PostDeleteRequestDto;
 import com.sennyru.onboarding.post.controller.dto.PostResponseDto;
 import com.sennyru.onboarding.post.controller.dto.PostUpdateRequestDto;
-import com.sennyru.onboarding.post.exception.PostAccessDeniedException;
-import com.sennyru.onboarding.post.exception.PostNotFoundException;
-import com.sennyru.onboarding.member.service.MemberService;
-import com.sennyru.onboarding.post.repository.PostRepository;
+import com.sennyru.onboarding.post.domain.Post;
+import com.sennyru.onboarding.post.implement.PostAdder;
+import com.sennyru.onboarding.post.implement.PostDeleter;
+import com.sennyru.onboarding.post.implement.PostReader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Objects;
 
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class PostService {
-
-    private final PostRepository postRepository;
-    private final MemberService memberService;
+    private final MemberReader memberReader;
+    private final PostAdder postAdder;
+    private final PostDeleter postDeleter;
+    private final PostReader postReader;
+    
 
     @Transactional
     public PostResponseDto createPost(PostCreateRequestDto requestDto) {
-        Member member = memberService.authenticateAndFindMember(requestDto.email(), requestDto.password());
-
-        Post post = Post.create(requestDto.title(), requestDto.content(), member);
-        Post savedPost = postRepository.save(post);
-
+        Post savedPost = postAdder.AddPost(requestDto);
+        
         return PostResponseDto.of(
             savedPost.getId(),
             savedPost.getMember().getEmail(),
@@ -39,13 +36,13 @@ public class PostService {
         );
     }
 
+
     @Transactional
     public PostResponseDto updatePost(Long postId, PostUpdateRequestDto requestDto) {
-        Member member = memberService.authenticateAndFindMember(requestDto.email(), requestDto.password());
-        Post post = findPostAndValidateOwnership(postId, member);
-
+        Member member = memberReader.getMemberByEmailAndPassword(requestDto.email(), requestDto.password());
+        Post post = postReader.findPostByIdAndMember(postId, member);
         post.update(requestDto.title(), requestDto.content());
-
+        
         return PostResponseDto.of(
             post.getId(),
             post.getMember().getEmail(),
@@ -53,31 +50,11 @@ public class PostService {
             post.getContent()
         );
     }
-
+    
     @Transactional
     public void deletePost(Long postId, PostDeleteRequestDto requestDto) {
-        Member member = memberService.authenticateAndFindMember(requestDto.email(), requestDto.password());
-        Post post = findPostAndValidateOwnership(postId, member);
-
-        postRepository.delete(post);
-    }
-    
-    
-    /**
-     * 게시물이 존재하는지 확인하고, 사용자가 게시물의 작성자인지 검증합니다.
-     * @param postId 검증할 게시물의 ID
-     * @param member 인증된 사용자 Member 엔티티
-     * @return 검증된 Post 엔티티
-     * @throws PostNotFoundException 게시물이 존재하지 않을 경우
-     * @throws PostAccessDeniedException 게시물에 대한 권한이 없을 경우
-     */
-    private Post findPostAndValidateOwnership(Long postId, Member member) {
-        Post post = postRepository.findById(postId)
-            .orElseThrow(() -> new PostNotFoundException("존재하지 않는 게시물입니다."));
-
-        if (!Objects.equals(post.getMember().getId(), member.getId())) {
-            throw new PostAccessDeniedException("게시물에 대한 권한이 없습니다.");
-        }
-        return post;
+        Member member = memberReader.getMemberByEmailAndPassword(requestDto.email(), requestDto.password());
+        Post post = postReader.findPostByIdAndMember(postId, member);
+        postDeleter.delete(post);
     }
 }
