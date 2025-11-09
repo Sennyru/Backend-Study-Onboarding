@@ -1,7 +1,7 @@
 package com.sennyru.onboarding.member.implement;
 
-import com.sennyru.onboarding.member.controller.dto.SignupRequestDto;
 import com.sennyru.onboarding.member.domain.Member;
+import com.sennyru.onboarding.member.service.dto.AddMemberDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -13,7 +13,7 @@ public class MemberAdder {
     private final MemberWriter memberWriter;
     
     
-    public Member addMember(SignupRequestDto requestDto) {
+    public Member addMember(AddMemberDto requestDto) {
         String encryptedPassword = passwordEncoder.encode(requestDto.password());
         Member member = Member.create(requestDto.email(), encryptedPassword, requestDto.username());
         return memberWriter.save(member);

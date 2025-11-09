@@ -10,6 +10,7 @@ import com.sennyru.onboarding.post.domain.Post;
 import com.sennyru.onboarding.post.implement.PostAdder;
 import com.sennyru.onboarding.post.implement.PostRemover;
 import com.sennyru.onboarding.post.implement.PostReader;
+import com.sennyru.onboarding.post.service.dto.AddPostDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +27,8 @@ public class PostService {
 
     @Transactional
     public PostResponseDto createPost(PostCreateRequestDto requestDto) {
-        Post savedPost = postAdder.AddPost(requestDto);
+        Post savedPost = postAdder.AddPost(AddPostDto.of(
+            requestDto.email(), requestDto.password(), requestDto.title(), requestDto.content()));
         
         return PostResponseDto.of(
             savedPost.getId(),
