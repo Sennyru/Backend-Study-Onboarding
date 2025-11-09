@@ -8,7 +8,7 @@ import com.sennyru.onboarding.post.controller.dto.PostResponseDto;
 import com.sennyru.onboarding.post.controller.dto.PostUpdateRequestDto;
 import com.sennyru.onboarding.post.domain.Post;
 import com.sennyru.onboarding.post.implement.PostAdder;
-import com.sennyru.onboarding.post.implement.PostDeleter;
+import com.sennyru.onboarding.post.implement.PostRemover;
 import com.sennyru.onboarding.post.implement.PostReader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostService {
     private final MemberReader memberReader;
     private final PostAdder postAdder;
-    private final PostDeleter postDeleter;
+    private final PostRemover postRemover;
     private final PostReader postReader;
     
 
@@ -55,6 +55,6 @@ public class PostService {
     public void deletePost(Long postId, PostDeleteRequestDto requestDto) {
         Member member = memberReader.getMemberByEmailAndPassword(requestDto.email(), requestDto.password());
         Post post = postReader.findPostByIdAndMember(postId, member);
-        postDeleter.delete(post);
+        postRemover.delete(post);
     }
 }
